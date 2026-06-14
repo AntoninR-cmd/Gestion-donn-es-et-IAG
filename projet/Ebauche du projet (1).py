@@ -192,7 +192,14 @@ db.commit()
 #--------------------------------
 
 def main():
+    '''
+    Fonction principale, elle affiche le menu et redirige vers les autres fonctions
 
+    Paramètre : aucun
+
+    Retourne : Rien
+    '''
+    # Boucle principale du programme : reste active jusqu'à ce que l'utilisateur choisisse de quitter (break).
     while True:
         print("Menu: \t")
         print("1. Nouveau Compte")
@@ -217,6 +224,11 @@ def main():
             break
 
 def nouveau_compte():
+    '''
+    Interface permettant de créer un compte ou de revenir en arrière
+
+    Aucun paramètre ni retour, cette fonction redirige vers d'autres fonctions
+    '''
     print("Création d'un nouveau compte")
     print("Faites votre choix :")
     print("1. Je suis propriétaire et souhaite réserver une balade pour mon ou mes chiens")
@@ -226,6 +238,7 @@ def nouveau_compte():
 
     choix_creation = ' '
 
+    # Vérifie la validité de la réponse sans lever une erreur à chaque fois
     while choix_creation not in ['1', '2', '3']:
         choix_creation = input("Entrez votre choix (1, 2 ou 3) : ")
 
@@ -234,10 +247,16 @@ def nouveau_compte():
     elif choix_creation == '2':
         creation_baladeur()
     else:
+        # retourne rien et permet ainsi de retourner à la fonction d'appel main()
         return
 
 
 def acces_compte():
+    '''
+    Interface permettant d'acceder à un compte déjà existant
+
+    Aucun paramètre ni retour, la fonction redirige vers d'autres fonctions
+    '''
     print("1. Je suis propriétaire")
     print("2. Je suis baladeur")
     print("3. Revenir en arrière")
@@ -245,6 +264,7 @@ def acces_compte():
 
     choix_acces = ' '
 
+    # Vérifie la validité de la réponse sans lever une erreur à chaque fois
     while choix_acces not in ['1', '2', '3']:
         choix_acces = input("Entrez votre choix (1, 2 ou 3) : ")
 
@@ -253,10 +273,20 @@ def acces_compte():
     elif choix_acces == '2':
         connexion_baladeur()
     else:
+        # retourne rien et permet ainsi de retourner à la fonction d'appel main()
         return  
 
 
 def connexion_prop():
+    '''
+    Permet de se connecter à un espace propriétaire existant
+
+    Aucun paramètre ni retour
+
+    Cette fonction est une étape de vérification et connexion,
+    elle redirige vers l'espace propriétaire ou l'interface précédente
+    '''
+
     print("\n--- CONNEXION PROPRIÉTAIRE ---")
     test = True
 
@@ -279,6 +309,11 @@ def connexion_prop():
             test = False
         else:
             print("Mail ou mot de passe incorrect")
+
+            # Permet de quitter en cas d'erreur de connexion
+            rep_quit = input("Retour ? (Y/N)").lower()
+            if rep_quit == "y":
+                return
     
     id_proprietaire = resultat[0]
     prenom = resultat[2]
@@ -286,10 +321,26 @@ def connexion_prop():
     espace_prop(id_proprietaire, prenom)
     
 def espace_prop(id_proprietaire, prenom):
+    '''
+    Cette fonction affiche l'espace propriétaire en un interface et
+    permet d'accéder à toutes les fonctionnalités possibles
+    pour les propriétaires de chiens : 
+    - Enregistrer un chien
+    - Rechercher un activité à partir de filtres ou d'une requête
+    - Se déconnecter
+
+    Paramètres : id_proprietaire : int
+        id du propriétaire connecté
+            prenom : str
+        prenom du propriétaire pour l'affichage
+
+    Retourne : Rien mais affiche l'interface et redirige vers les fonctions
+    '''
+
     print("\n--- PROFIL PROPRIETAIRE ---")
     choix_cp = ' '
 
-    while choix_cp not in ['1', '2', '3']:
+    while choix_cp not in ['1', '2', '3', '4']:
         print(f"Bonjour {prenom}")
         print("Que voulez-vous faire ?")
         print("1. Enregistrer un chien")
@@ -312,6 +363,15 @@ def espace_prop(id_proprietaire, prenom):
 
 
 def connexion_baladeur():
+    '''
+    Permet de se connecter à un espace baladeur existant
+
+    Aucun paramètre ni retour
+
+    Cette fonction est une étape de vérification et connexion,
+    elle redirige vers l'espace baladeur ou l'interface précédente
+    '''
+
     test = True
 
     while test : 
@@ -333,6 +393,11 @@ def connexion_baladeur():
             test = False
         else:
             print("Mail ou mot de passe incorrect")
+
+            # Permet de quitter en cas d'erreur de connexion
+            rep_quit = input("Retour ? (Y/N)").lower()
+            if rep_quit == "y":
+                return
             
     id_baladeur = resultat_b[0]
     prenom = resultat_b[2]
@@ -340,6 +405,23 @@ def connexion_baladeur():
     espace_baladeur(id_baladeur, prenom)
     
 def espace_baladeur(id_baladeur, prenom):
+    '''
+    Cette fonction affiche l'espace baladeur en un interface et
+    permet d'accéder à toutes les fonctionnalités possibles
+    pour les baladeurs : 
+    - Proposer une activité
+    - Exporter les activités réalisées au format .csv
+    - Visualiser graphiquement l'évolution de ses activités
+    - Se déconnecter
+
+    Paramètres : id_baladeur : int
+        id du baladeur connecté
+            prenom : str
+        prenom du baladeur pour l'affichage
+
+    Retourne : Rien mais affiche l'interface et redirige vers les fonctions
+    '''
+
     print("\n--- PROFIL BALADEUR ---")
     choix_cb = ' '
 
@@ -354,12 +436,13 @@ def espace_baladeur(id_baladeur, prenom):
         choix_cb = input("")
 
     if choix_cb == '1':
+        # Fonction d'enregistrement de nouvelles activités proposées
         enregistrement_nv_activite(id_baladeur,prenom)
     elif choix_cb == '2':
-        # Fonction d'export des act
+        # Fonction d'export des activités
         export_act(id_baladeur, prenom)
     elif choix_cb == '3':
-        # Fonction visulaisation évolution act
+        # Fonction visualisation évolution activités
         graphe_evol(id_baladeur, prenom)
     else:
         return
@@ -369,6 +452,16 @@ def espace_baladeur(id_baladeur, prenom):
 #--------------------------------
 
 def creation_prop():
+    '''
+    Cette fonction permet de créer un compte propriétaire. 
+    Les données sont ensuite envoyées vers la base de données SQL associée
+    Il est alors possible d'être à la fois propriétaire et baladeur sous deux comptes différents.
+
+    Aucun paramètre ni retour.
+    Cette fonction affiche de question, enrichit la base de données avec les réponses
+    et redirige vers l'espace propriétaire ou la page menu principal.
+    '''
+
     print("\n--- ENREGISTREMENT DE VOTRE COMPTE ---")
     nom = input("Quel est votre nom de famille ?")
     prenom = input("Quel est votre prénom ?")
@@ -387,6 +480,10 @@ def creation_prop():
     print("1 : Oui")
     print("2 : Non")
     choix = input("Votre choix (1 ou 2) : ")
+
+    while choix not in ["1", "2"]:
+        choix = input("Votre choix (1 ou 2) : ")
+
     if choix == "1":
         print("")
         creation_chien(id_nouveau_prop)
@@ -401,6 +498,19 @@ def creation_prop():
 # --------------------------------
 
 def creation_chien(id_proprietaire, prenom):
+    '''
+    Cette fonction permet d'afficher l'interface d'ajout d'un chien et d'enrichir ses données
+    Elle affiche les questions et enrichit la base de données Chiens des données de chaque animal ajouté
+    elle redirige ensuite vers l'espace propriétaire
+
+    Paramètres : id_proprietaire : int
+        permet d'associer le ou les chiens à leur propriétaire
+            prenom : str
+        utilisé pourb l'affichage
+
+    Retourne : Rien, affiche les questions, enrichit la base de données et redirige vers la fonction espace_prop() associée
+    '''
+
     print("\n--- ENREGISTREMENT DE VOTRE CHIEN ---")
     nom_chien = input("Quel est le nom du chien ? ")
     race_chien = input("Quel est la race du chien ? ")
@@ -446,6 +556,16 @@ def creation_chien(id_proprietaire, prenom):
 #--------------------------------
 
 def creation_baladeur():
+    '''
+    Cette fonction permet de créer un compte baladeur. 
+    Les données sont ensuite envoyées vers la base de données SQL associée
+    Il est alors possible d'être à la fois propriétaire et baladeur sous deux comptes différents.
+
+    Aucun paramètre ni retour.
+    Cette fonction affiche des questions, enrichit la base de données avec les réponses
+    et redirige vers l'espace baladeur.
+    '''
+
     print("\n--- ENREGISTREMENT DE VOTRE COMPTE ---")
     nom = input("Quel est votre nom de famille ?")
     prenom = input("Quel est votre prénom ?")
