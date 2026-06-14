@@ -293,8 +293,9 @@ def espace_prop(id_proprietaire, prenom):
         print(f"Bonjour {prenom}")
         print("Que voulez-vous faire ?")
         print("1. Enregistrer un chien")
-        print("2. Rechercher une balade pour mon ou mes chiens")
-        print("3. Me déconnecter")
+        print("2. Rechercher une activité pour mon ou mes chiens avec des filtres")
+        print("3. Rechercher une activité pour mon ou mes chiens avec une requête")
+        print("4. Me déconnecter")
 
         choix_cp = input("")
 
@@ -303,8 +304,11 @@ def espace_prop(id_proprietaire, prenom):
     elif choix_cp == '2':
         print(" ")
         reservation(id_proprietaire, prenom)
+    elif choix_cp == '3':
+        recherche(id_proprietaire, prenom, k=3)
     else:
         main()
+        return
 
 
 def connexion_baladeur():
@@ -619,6 +623,15 @@ def reservation(id_proprietaire, prenom):
         choix_id = input("Id invalide. Veuillez choisir un Id_Offre présent dans le tableau : ")
     id_offre_choisie = int(choix_id)
     ligne_choisie = disponibilites[disponibilites['Id_Offre'] == id_offre_choisie].iloc[0]
+
+    reserver(ligne_choisie, id_chien_selectionne, id_offre_choisie)
+
+    print("")
+    input("Appuyez sur Entrée pour revenir à votre espace...")
+    espace_prop(id_proprietaire, prenom)
+
+
+def reserver(ligne_choisie, id_chien_selectionne, id_offre_choisie):
     query_reservation = """
     INSERT INTO Activites_reservees (Id_Baladeur, activite, jour, mois, annee, moment, tarif, Id_chien) 
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
@@ -638,11 +651,7 @@ def reservation(id_proprietaire, prenom):
         print("")
         print(f"Réservation enregistrée ! Il reste {places_dispo} place(s) pour cette activité.")
     db.commit()
-    print("")
-    input("Appuyez sur Entrée pour revenir à votre espace...")
-    espace_prop(id_proprietaire, prenom)
-
-
+    return
 #--------------------------------
 # Exporter les activités déjà faites + quantité argent gagnée
 #--------------------------------
@@ -825,7 +834,7 @@ def export_baladeur():
     
     colonnes_exp_act = [
         "Id_Baladeur", "nom", "prenom", "telephone", "mail", "mot_de_passe",
-        "Id_Enregistrement", "Id_Baladeur", "activite", "jour", "mois",
+        "Id_Enregistrement", "Id_Baladeur_2", "activite", "jour", "mois",
         "annee", "moment", "nb_chiens", "tarif"
         ]
     df_exp_act = pd.DataFrame(act, columns= colonnes_exp_act)
@@ -842,7 +851,7 @@ def export_baladeur():
 
     df_res = pd.DataFrame(resultats)
 
-    return df_res
+    return df_exp_act, df_res
 
 
 def embed(text):
@@ -893,20 +902,85 @@ def recherche_baladeur(requete, embeddings, df, top_k=3):
     print("="*5)
     print(f"==> Requête: {requete}")
     print("="*5)
+
+    res = {}
+
     for rank, idx in enumerate(idx_sorted):
         print(f"{rank+1}. [{df.iloc[idx]['nom']}] score={scores[idx]:.3f}")
-    print(df.iloc[idx]["texte"])
-    return idx_sorted
+        res[f"{rank+1}"] = df.iloc[idx]['nom']
+        print(df.iloc[idx]["texte"])
+    return idx_sorted, res
 
 
-def recherche(id_proprietaire, prenom):
+def recherche(id_proprietaire, prenom, k = 3):
     print(60*"=")
     print("RECHERCHE PAR REQUETE")
     requete = input("Que recherchez vous ?")
 
-    df = export_baladeur()
+    df, df_res = export_baladeur()
 
-    idx_sorted = recherche_baladeur(requete, embeddings_data(df), df)
+    idx_sorted, res = recherche_baladeur(requete, embeddings_data(df_res), df_res, top_k=k)
+
+    print(f"{k+1}. Voir plus de résultats ou avec une autre requête")
+    print(f"{k+2}. Retour à mon espace")
+    choix_final = input("Que choisissez-vous (1, 2, 3, 4, ...) ?")
+
+    while choix_final not in [str(i) for i in range(1, k+3)]:
+        choix_final = input("Que choisissez-vous (1, 2, 3, 4, ...) ?")
+    
+    if choix_final == str(k+1):
+        new_k = input("Combien de résultats voulez-vous voir ? ")
+
+        while not new_k.isdigit() or int(new_k) <= 0:
+            new_k = input("Veuillez entrer un nombre entier positif : ")
+
+        new_k = int(new_k)
+
+        recherche(id_proprietaire, prenom, k = new_k)
+        return
+    elif choix_final == str(k+2):
+        print("Retour à votre espace ...")
+        espace_prop(id_proprietaire, prenom)
+        return
+    else :
+        id_offre_choisie = idx_sorted[int(choix_final)-1]
+        
+        #query_lg_choix = '''SELECT * FROM Activites_enregistrees WHERE Id_Enregistrement = %s;'''
+        #cursor.execute(query_lg_choix, (id_offre_choisie, ))
+
+        ligne_choisie = df.iloc[id_offre_choisie]
+        ligne_choisie = ligne_choisie[[
+            "Id_Enregistrement", "Id_Baladeur", "activite", "jour", "mois", "annee", "moment", "nb_chiens", "tarif"
+            ]]
+        ligne_choisie = ligne_choisie.rename({
+            "activite": "Activité",
+            "jour": "Jour",
+            "mois": "Mois",
+            "annee": "Année",
+            "moment": "Moment",
+            "tarif": "Tarif",
+            "nb_chiens": "Places Restantes"
+        })
+
+        print("Vos chiens : ")
+        query_chiens = '''SELECT * FROM Chiens WHERE Id_Proprietaire = %s;'''
+        cursor.execute(query_chiens, (id_proprietaire,))
+        chiens_dispo = pd.DataFrame(
+            cursor.fetchall(), columns=["Id_chien", "nom_chien", "race_chien", "temperament", "Id_Proprietaire"]
+                                    )
+
+        for idc, row in chiens_dispo.iterrows():
+            rep = input(f"Voulez vous réserver pour {row['nom_chien']} (y/n)").lower()
+            while rep not in ["y", "n"]:
+                rep = input(f"Voulez vous réserver pour {row['nom_chien']} (y/n)").lower()
+
+            if rep == "y":
+                reserver(ligne_choisie, row["Id_chien"], id_offre_choisie)
+
+        
+        print("Retour à l'espace personnel ...")
+        espace_prop(id_proprietaire, prenom)
+        return  
 
 
 main()
