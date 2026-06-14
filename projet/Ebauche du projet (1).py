@@ -705,7 +705,12 @@ def graphe_evol(id_baladeur, prenom):
     colonnes_act = ["Id_Activite", "Id_Baladeur", "activite", "jour", "mois", "annee", "moment", "nb_chiens", "tarif"]
     df_evol_act = pd.DataFrame(evol_act, columns=colonnes_act)
     df_evol_act = df_evol_act[["activite", "jour", "mois", "annee", "moment", "nb_chiens", "tarif"]]
+
     df_evol_act["gain_act"] = df_evol_act["tarif"]*df_evol_act["nb_chiens"]
+
+    df_evol_act["temps"] = df_evol_act['mois'].astype(str) + "_" + df_evol_act['annee'].astype(str)
+    
+    annees_dispo = sorted(df_evol_act["annee"].unique())
 
     print("\nQue voulez vous visualiser ?")
     print("1. Le nombre d'activité")
@@ -717,22 +722,93 @@ def graphe_evol(id_baladeur, prenom):
 
     while choix1 not in ["1", "2", "3", "4", "5"]:
         choix1 = input("Que choisissez-vous ? (1, 2, 3, 4 ou 5)")
-    if choix1 == "1":
-        tab_temp = df_evol_act.groupby("temps").size().reset_index(name = "nb_actvite")
 
-        plt.bar(tab_temp["temps"], tab_temp["nb_activite"])
+    if not choix1 == "5":
+        print("\n Années disponibles")
+        print(annees_dispo)
+        choix2 = input("Quelle année voulez-vous observer parmi celle(s) disponible(s) ? ")
+
+        while not choix2.isdigit() or int(choix2) not in annees_dispo:
+            choix2 = input("Quelle année voulez-vous observer parmi celle(s) disponible(s) ? ")
+    
+        choix2 = int(choix2)
+
+    if choix1 == "1":
+        tab_temp = (
+            df_evol_act.groupby("mois")
+            .size()
+            .reindex(range(1, 13), fill_value=0)
+            .reset_index(name="nb_activites")
+        )
+
+        plt.bar(tab_temp["mois"], tab_temp["nb_activites"])
+        plt.xlabel("Mois")
+        plt.ylabel("Nombre d'activités réalisées")
+        plt.title(f"Évolution du nombre d'activités réalisées en {choix2}")
+        plt.xticks(range(1, 13), range(1, 13), rotation=90)
         plt.show()
+
+        graphe_evol(id_baladeur, prenom)
+        return
     elif choix1 == "2":
-        var1 = "nb_chien"
+        tab_temp = (
+            df_evol_act.groupby("mois")["nb_chiens"]
+            .sum()
+            .reindex(range(1, 13), fill_value=0)
+            .reset_index()
+        )
+
+        plt.bar(tab_temp["mois"], tab_temp["nb_chiens"])
+        plt.xlabel("Mois")
+        plt.ylabel("Nombre de chiens pris en charge")
+        plt.title(f"Évolution du nombre de chiens pris en charge en {choix2}")
+        plt.xticks(range(1, 13), range(1, 13), rotation=90)
+        plt.show()
+
+        graphe_evol(id_baladeur, prenom)
+        return
     elif choix1 == "3":
-        var1 = "gain_act"
+        tab_temp = (
+            df_evol_act.groupby("mois")["gain_act"]
+            .sum()
+            .reindex(range(1, 13), fill_value=0)
+            .reset_index()
+        )
+
+        plt.bar(tab_temp["mois"], tab_temp["gain_act"])
+        plt.xlabel("Mois")
+        plt.ylabel("Gain perçu (€)")
+        plt.title(f"Évolution du gain perçu mensuel en {choix2}")
+        plt.xticks(range(1, 13), range(1, 13), rotation=90)
+        plt.show()
+
+        graphe_evol(id_baladeur, prenom)
+        return
     elif choix1 == "4":
-        var1 = "activite"
+        tab_temp = (
+            df_evol_act.groupby(["mois", "activite"])
+            .size()
+            .unstack(fill_value=0)
+            .reindex(range(1, 13), fill_value=0)
+        )
+
+        tab_temp.index = range(1, 13)
+
+        tab_temp.plot(kind="bar", stacked=True)
+        plt.xlabel("Mois")
+        plt.ylabel("Nombre d'activités réalisées")
+        plt.title(f"Répartition des activités réalisées en {choix2}")
+        plt.xticks(rotation=90)
+        plt.legend(title="Activité")
+        plt.tight_layout()
+        plt.show()
+
+        graphe_evol(id_baladeur, prenom)
+        return
     else:
         print("Retour sur le profil ...")
         espace_baladeur(id_baladeur, prenom)
         return
-    
 
 
 main()
