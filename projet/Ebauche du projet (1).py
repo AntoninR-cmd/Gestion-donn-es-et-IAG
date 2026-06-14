@@ -7,6 +7,10 @@ import csv
 import pandas as pd
 import calendar
 import matplotlib.pyplot as plt
+import ollama
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+import seaborn as sns
 
 
 db = pymysql.connect(host="146.59.198.88",
@@ -637,10 +641,6 @@ def reservation(id_proprietaire, prenom):
     print("")
     input("Appuyez sur Entrée pour revenir à votre espace...")
     espace_prop(id_proprietaire, prenom)
-    
-
-
-
 
 
 #--------------------------------
@@ -809,6 +809,104 @@ def graphe_evol(id_baladeur, prenom):
         print("Retour sur le profil ...")
         espace_baladeur(id_baladeur, prenom)
         return
+
+
+def export_baladeur():
+    query_expbal = '''SELECT * FROM Baladeurs b JOIN Activites_enregistrees ae ON b.Id_Baladeur = ae.Id_Baladeur;'''
+
+    cursor.execute(query_expbal)
+    act = cursor.fetchall()
+
+    if not act:
+        print("")
+        print("[Attention] Aucune activité enregistrée.")
+        input("\nAppuyez sur Entrée pour revenir au menu...")
+        return
+    
+    colonnes_exp_act = [
+        "Id_Baladeur", "nom", "prenom", "telephone", "mail", "mot_de_passe",
+        "Id_Enregistrement", "Id_Baladeur", "activite", "jour", "mois",
+        "annee", "moment", "nb_chiens", "tarif"
+        ]
+    df_exp_act = pd.DataFrame(act, columns= colonnes_exp_act)
+    
+    resultats = []
+
+    for idx, row in df_exp_act.iterrows():
+        texte = (
+            f"{row['prenom']} {row['nom']} propose une {row['activite']} le {row['jour']}/{row['mois']}/{row['annee']} au moment : {row['moment']}. {row['nb_chiens']} place(s) est/sont disponible(s) à {row['tarif']} € chacune."
+        )
+        
+        ligne = {"Id_Enregistrement": row["Id_Enregistrement"], "Id_Baladeur": row["Id_Baladeur"], "nom": row["nom"], "texte": texte}
+        resultats.append(ligne)
+
+    df_res = pd.DataFrame(resultats)
+
+    return df_res
+
+
+def embed(text):
+    reponse = ollama.embeddings(
+        model="nomic-embed-text",
+        prompt=text)
+    vecteur = reponse["embedding"]
+
+    return vecteur
+
+
+def embeddings_data(df):
+    embeddings = []
+    for i, row in df.iterrows():
+        txt = row["texte"]
+        vec = embed(txt)
+        embeddings.append(vec)
+
+    embeddings = np.array(embeddings)
+
+    return(embeddings)
+
+
+def calcul_similarite(df, embeddings):
+    sim_matrix = cosine_similarity(embeddings)
+    labels = df["texte"].apply(lambda x: x.split()[1]).tolist()
+    plt.figure(figsize=(12, 10))
+    sns.heatmap(
+        sim_matrix,
+        cmap="viridis",
+        vmin=0, vmax=1,
+        xticklabels=labels,
+        yticklabels=labels,
+        square=True,
+        cbar_kws={"label": "Similarite cosinus"}
+    )
+    plt.xticks(rotation=45, ha="right", fontsize=8)
+    plt.yticks(rotation=0, fontsize=8)
+    plt.title("Similarite semantique entre textes")
+    plt.tight_layout()
+    plt.show()
+
+
+def recherche_baladeur(requete, embeddings, df, top_k=3):
+    q_emb = embed(requete)
+    scores = cosine_similarity([q_emb], embeddings)[0]
+    idx_sorted = np.argsort(scores)[::-1][:top_k]
+    print("="*5)
+    print(f"==> Requête: {requete}")
+    print("="*5)
+    for rank, idx in enumerate(idx_sorted):
+        print(f"{rank+1}. [{df.iloc[idx]['nom']}] score={scores[idx]:.3f}")
+    print(df.iloc[idx]["texte"])
+    return idx_sorted
+
+
+def recherche(id_proprietaire, prenom):
+    print(60*"=")
+    print("RECHERCHE PAR REQUETE")
+    requete = input("Que recherchez vous ?")
+
+    df = export_baladeur()
+
+    idx_sorted = recherche_baladeur(requete, embeddings_data(df), df)
 
 
 main()
