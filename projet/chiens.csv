@@ -1,0 +1,67 @@
+Id Chien,Nom du Chien,Race du chien,Tempérament,Id Propriétaire
+1,Cooper,Caniche,Sociable,1
+2,Snoopy,Husky,Peureux,2
+3,Daisy,Cocker,Peureux,2
+4,Max,Caniche,Calme,3
+5,Lucky,Cocker,Calme,4
+6,Choupette,Cocker,Agressif,5
+7,Bella,Husky,Agressif,5
+8,Marley,Husky,Peureux,6
+9,Gribouille,Boxer,Calme,7
+10,Charlie,Bulldog,Joueur,8
+11,Nougat,Bulldog,Calme,9
+12,Marley,Boxer,Joueur,10
+13,Toby,Caniche,Joueur,10
+14,Daisy,Cocker,Calme,11
+15,Toby,Cocker,Joueur,11
+16,Ruby,Husky,Peureux,12
+17,Maya,Labrador,Peureux,12
+18,Nala,Labrador,Peureux,13
+19,Lucky,Husky,Joueur,14
+20,Nala,Cocker,Sociable,14
+21,Lucky,Cocker,Joueur,15
+22,Filou,Bulldog,Peureux,15
+23,Charlie,Cocker,Joueur,16
+24,Charlie,Bulldog,Calme,17
+25,Nougat,Cocker,Peureux,18
+26,Marley,Chihuahua,Agressif,19
+27,Filou,Cocker,Joueur,19
+28,Tahiti,Cocker,Joueur,20
+29,Rocky,Bulldog,Agressif,21
+30,Ramses,Caniche,Joueur,22
+31,Ramses,Bulldog,Joueur,23
+32,Simba,Husky,Joueur,24
+33,Luna,Bulldog,Joueur,24
+34,Bella,Husky,Sociable,25
+35,Max,Caniche,Calme,26
+36,Daisy,Caniche,Peureux,27
+37,Milo,Caniche,Peureux,28
+38,Rocky,Bulldog,Agressif,28
+39,Loki,Cocker,Sociable,29
+40,Maya,Berger Allemand,Peureux,30
+41,Cooper,Bulldog,Calme,31
+42,Toby,Berger Allemand,Sociable,31
+43,Teddy,Bulldog,Peureux,32
+44,Toby,Husky,Sociable,32
+45,Bella,Husky,Calme,33
+46,Roxy,Caniche,Calme,34
+47,Tahiti,Boxer,Agressif,34
+48,Pluto,Labrador,Calme,34
+49,Loki,Bulldog,Joueur,35
+50,Lucky,Cocker,Joueur,36
+51,Ramses,Berger Allemand,Sociable,37
+52,Bella,Husky,Peureux,38
+53,Snoopy,Chihuahua,Calme,39
+54,Rocky,Chihuahua,Sociable,40
+55,Daisy,Labrador,Joueur,41
+56,Nougat,Chihuahua,Joueur,42
+57,Filou,Labrador,Sociable,42
+58,Bella,Berger Allemand,Sociable,43
+59,Simba,Husky,Agressif,44
+60,Toby,Caniche,Joueur,45
+61,Marley,Berger Allemand,Agressif,46
+62,Pluto,Husky,Agressif,47
+63,Loki,Cocker,Joueur,48
+64,Ramses,Bulldog,Calme,49
+65,Milo,Labrador,Calme,50
+66,Prune,Cocker,Agressif,50
