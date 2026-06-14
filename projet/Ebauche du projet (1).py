@@ -1033,6 +1033,21 @@ def graphe_evol(id_baladeur, prenom):
 
 
 def export_baladeur():
+    '''
+    Cette fonction permet d'importer les données combinées des baladeurs (Baladeurs)
+    et des activités proposées par les baladeurs (Activites_enregistrees). 
+    Elle permet aussi de générer les textes génériques résumant les informations de chaque activité proposée.
+    Ces textes pourront être alors utilisé en embedding ensuite.
+
+    Paramètres : aucun
+
+    Retourne : df_exp_act : pandas.Dataframe
+        Ce dataframe contient toutes les données des activités proposées liées avec le baladeur associé.
+            df_res : pandas.Dataframe
+        Ce dataframe contient les textes résumant les offres. 
+        Ces textes sont associés aux identifiants de l'activitée et du baladeur et au nom du baladeur
+    '''
+
     query_expbal = '''SELECT * FROM Baladeurs b JOIN Activites_enregistrees ae ON b.Id_Baladeur = ae.Id_Baladeur;'''
 
     cursor.execute(query_expbal)
@@ -1067,6 +1082,22 @@ def export_baladeur():
 
 
 def embed(text):
+    '''
+    Cette fonction génère l'embedding d'un texte à l'aide du modèle
+    'nomic-embed-text' d'Ollama.
+
+    Paramètres
+    text : str
+        Texte à convertir en vecteur numérique.
+
+    Retourne :
+    list[float]
+        Vecteur d'embedding représentant le sens du texte
+        dans un espace de 768 dimensions. Ce vecteur pourra ensuite
+        être comparé à d'autres embeddings grâce à la
+        similarité cosinus.
+    '''
+
     reponse = ollama.embeddings(
         model="nomic-embed-text",
         prompt=text)
@@ -1076,6 +1107,17 @@ def embed(text):
 
 
 def embeddings_data(df):
+    '''
+    Cette fonction calcule et réunie toutes les coordonnées
+    des vecteurs des textes du dataframe entré en paramètre
+
+    Paramètre : df : pandas.Dataframe
+        dataframe contenant une colonne "texte" dont on veut les coordonnées en embedding
+    
+    Retourne : embeddings : Array numpy
+        Cet array contient les coordonnées de chaque vecteur de texte
+    '''
+
     embeddings = []
     for i, row in df.iterrows():
         txt = row["texte"]
@@ -1088,6 +1130,16 @@ def embeddings_data(df):
 
 
 def calcul_similarite(df, embeddings):
+    '''
+    Cette fonction calcule la matrice de similarité cosinus entre les embeddings des textes et du vecteur donné df
+    et affiche une carte de chaleur.
+
+    Paramètres : df : pandas.Dataframe
+        Dataframe contenant les coordonnées du vecteur principal
+            embeddings : Array numpy 
+        Array contenant les coordonnées des vecteurs de texte avec lesquels on souhaite comparer notre vecteur principal
+    '''
+
     sim_matrix = cosine_similarity(embeddings)
     labels = df["texte"].apply(lambda x: x.split()[1]).tolist()
     plt.figure(figsize=(12, 10))
@@ -1108,6 +1160,26 @@ def calcul_similarite(df, embeddings):
 
 
 def recherche_baladeur(requete, embeddings, df, top_k=3):
+    '''
+    Cette fonction calcule la similarité de cosinus entre
+    les coordonnées des vecteurs des textes et celles de la requête.
+    Elle retourne ensuite les indices et les noms des top_k textes les plus proches de la requête en embedding
+
+    Paramètres : requete : str
+        texte de la requête donc on veut étudier la similarité
+            embeddings : array numpy
+        Array contenant les coordonnées des vecteurs des textes des activités proposées
+            df : pandas.Dataframe
+        Dataframe contenant la liste des activités proposées
+            top_k : int
+        Nombre de textes les  plus proches de la requête à renvoyer
+
+    Retourne : idx_sorted : liste 
+        Liste des indices des textes les plus proches
+            res : Dictionnaire
+        Dictionnaire contenant les noms des baladeurs pour les textes les plus proches
+    '''
+
     q_emb = embed(requete)
     scores = cosine_similarity([q_emb], embeddings)[0]
     idx_sorted = np.argsort(scores)[::-1][:top_k]
@@ -1125,6 +1197,25 @@ def recherche_baladeur(requete, embeddings, df, top_k=3):
 
 
 def recherche(id_proprietaire, prenom, k = 3):
+    '''
+    Cette fonction demande une requête au propriétaire et recherche l'activité la plus proche.
+    Cette fonction importe les données des activités proposées,
+    calcule les embeddings des textes générés à partir des informations des activités,
+    calcule la similarité cosinus de ces textes avec la requête en embedding
+    et affiche les k activités les plus proche de la requête.
+    Elle demande ensuite pour quels chiens réserver et réserver avec la fonction reserver().
+
+    Paramètres : id_proprietaire : int
+        permet de d'effectuer la réservation à ce nom et recherche le(s) chien(s) possédé(s)
+            prenom : str
+        utilisé pour l'affichage
+            k : int
+        défini le nombre d'activité à afficher en réponse à la requête, par défaut k = 3
+
+    Retourne : Rien mais modifie les bases de données des activités proposées et réservées : 
+    Activites_enregistrees et Activites_reservees. La fonction redirige aussi vers d'autres fonctions et interfaces. 
+    '''
+
     print(60*"=")
     print("RECHERCHE PAR REQUETE")
     requete = input("Que recherchez vous ?")
@@ -1156,9 +1247,6 @@ def recherche(id_proprietaire, prenom, k = 3):
         return
     else :
         id_offre_choisie = idx_sorted[int(choix_final)-1]
-        
-        #query_lg_choix = '''SELECT * FROM Activites_enregistrees WHERE Id_Enregistrement = %s;'''
-        #cursor.execute(query_lg_choix, (id_offre_choisie, ))
 
         ligne_choisie = df.iloc[id_offre_choisie]
         ligne_choisie = ligne_choisie[[
