@@ -745,7 +745,7 @@ def graphe_evol(id_baladeur, prenom):
         plt.xlabel("Mois")
         plt.ylabel("Nombre d'activités réalisées")
         plt.title(f"Évolution du nombre d'activités réalisées en {choix2}")
-        plt.xticks(range(1, 13), range(1, 13), rotation=90)
+        plt.xticks(range(1, 13), range(1, 13), rotation=45)
         plt.show()
 
         graphe_evol(id_baladeur, prenom)
@@ -762,7 +762,7 @@ def graphe_evol(id_baladeur, prenom):
         plt.xlabel("Mois")
         plt.ylabel("Nombre de chiens pris en charge")
         plt.title(f"Évolution du nombre de chiens pris en charge en {choix2}")
-        plt.xticks(range(1, 13), range(1, 13), rotation=90)
+        plt.xticks(range(1, 13), range(1, 13), rotation=45)
         plt.show()
 
         graphe_evol(id_baladeur, prenom)
@@ -779,7 +779,7 @@ def graphe_evol(id_baladeur, prenom):
         plt.xlabel("Mois")
         plt.ylabel("Gain perçu (€)")
         plt.title(f"Évolution du gain perçu mensuel en {choix2}")
-        plt.xticks(range(1, 13), range(1, 13), rotation=90)
+        plt.xticks(range(1, 13), range(1, 13), rotation=45)
         plt.show()
 
         graphe_evol(id_baladeur, prenom)
@@ -798,7 +798,7 @@ def graphe_evol(id_baladeur, prenom):
         plt.xlabel("Mois")
         plt.ylabel("Nombre d'activités réalisées")
         plt.title(f"Répartition des activités réalisées en {choix2}")
-        plt.xticks(rotation=90)
+        plt.xticks(rotation=45)
         plt.legend(title="Activité")
         plt.tight_layout()
         plt.show()
