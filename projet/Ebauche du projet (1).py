@@ -587,6 +587,25 @@ def creation_baladeur():
 #--------------------------------
 
 def enregistrement_nv_activite(id_baladeur, prenom):
+    '''
+    Cette fonction permet de proposer une nouvelle activité.
+    Elle affiche les questions et enrichit la base  de données associées Activites_enregistrees.
+    Elle l'enrichit des informations suivantes : 
+        - Type d'activité :activite
+        - la date (jour, mois, annee)
+        - le moment dans la journée (moment)
+        - le nombre de chiens pouvant être pris en charge (nb_chiens)
+        - le tarif pour chaque chien (tarif)
+    Elle redirige ensuite vers l'espace baladeur ou pour enregistrer une autre activité
+
+    Paramètres : id_baladeur : int
+        Permet de lier les bases de données Baladeurs et Activites_enregistrees avec cette clé
+            prenom : str
+        Utilisé pour l'affichage
+    
+    Retourne : rien mais affiche les questions, enrichit la base de données et redirige vers d'autres fonctions
+    '''
+
     print("\n--- ENREGISTREMENT D'UNE NOUVELLE ACTIVITE ---")
     print("Quel est le type d'activité ? ")
     print("1: Balade")
@@ -650,6 +669,26 @@ def enregistrement_nv_activite(id_baladeur, prenom):
 #--------------------------------
 
 def reservation(id_proprietaire, prenom):
+    '''
+    Cette fonction permet de rechercher avec une recherche SQL précise et réserver une activité pour 1 ou plusieurs chiens.
+    Elle vérifie que le propriétaire possède bien un ou des chiens
+    Elle fait choisir le chien pour lequel on souhaite réserver
+    Elle demande à l'utilisateur : 
+        - le type d'activité désiré (activite)
+        - la date (jour, mois, annee)
+        - le moment de la journée (moment)
+    Elle vérifie si une activité est disponible selon ces conditions
+    Si oui execute la fonction reserver() qui permet de réserver une offre précise
+    Elle redirige ensuite vers l'espace propriétaire.
+
+    Paramètres : id_propriétaire : int
+        Lie les tables Proprietaires, Chiens et Activites_reservees
+            prenom : str
+        Utilisé pour l'affichage
+
+    Retourne : Rien
+    '''
+
     print("\n--- RECHERCHE ET RÉSERVATION D'UNE BALADE ---")
     query_chiens = """
     SELECT Id_Chien, nom_chien, race_chien, temperament 
@@ -752,6 +791,29 @@ def reservation(id_proprietaire, prenom):
 
 
 def reserver(ligne_choisie, id_chien_selectionne, id_offre_choisie):
+    '''
+    Cette fonction permet de réserver une offre d'activité.
+    A partir d'une offre de la base de données Activites_enregistrees, 
+    elle enrichit la base Activites_reservees selon les paramètres.
+    Cette fonction actualise également l'offre de la base de données Activites_enregistrees
+    en diminuant le nombre de place ou en supprimant l'offre si elle est complète.
+
+    Paramètres : ligne_choisie : pandas.Series
+        Ligne du DataFrame contenant toutes les informations
+        de l'activité sélectionnée (baladeur, date, activité,
+        tarif, nombre de places restantes, etc.).
+
+    id_chien_selectionne : int
+        Identifiant du chien pour lequel la réservation est effectuée.
+
+    id_offre_choisie : int
+        Identifiant de l'offre (Id_Enregistrement) dans la table
+        Activites_enregistrees. Sert à mettre à jour ou supprimer
+        l'offre après la réservation.
+
+    Retourne : Rien, Modifie les bases de données SQL
+    '''
+
     query_reservation = """
     INSERT INTO Activites_reservees (Id_Baladeur, activite, jour, mois, annee, moment, tarif, Id_chien) 
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
@@ -776,6 +838,19 @@ def reserver(ligne_choisie, id_chien_selectionne, id_offre_choisie):
 # Exporter les activités déjà faites + quantité argent gagnée
 #--------------------------------
 def export_act(id_baladeur, prenom):
+    '''
+    Cette fonction permet d'exporter les activités réalisées d'un baladeur au format .csv
+    et affiche le gain total perçu.
+
+    Paramètres : id_baladeur : int
+        Identifiant du baladeur concerné, permet de sélectionnées seulement les activités souhaitée
+            prenom : str
+        Utilisé uniquement pour l'affichage et l'interface.
+
+    Retourne : Rien mais permet de sauvegarder dans le dossier du script un fichier .csv contenant les activités réalisées
+    et d'afficher le gain total. 
+    '''
+
     print("\n--- EXPORTATION DES ACTIVITES ---")
     query_exp = """
     SELECT * 
@@ -816,6 +891,19 @@ def export_act(id_baladeur, prenom):
 # Visualisation graphique de l'évolution des activités
 #--------------------------------
 def graphe_evol(id_baladeur, prenom):
+    '''
+    Cette fonction permet d'afficher un graphe de l'évolution des activités
+    Elle permet d'afficher le nombre, d'activités réalisées, le nombre de chiens pris en charge,
+    les gains perçus et le type d'activité en fonction des mois d'une année.
+
+    Paramètres : id_baladeur : int
+        Permet de sélectionner les activités liées au baladeur
+            prenom : str
+        Utilisé pour l'affichage.
+
+    Retourne : Rien mais affiche le graphe et redirige vers d'autres fonctions et interfaces
+    '''
+
     print("\n--- VISUALISATION GRAPHIQUE DE L'EVOLUTION DES ACTIVITES ---")
     query_evol = """
     SELECT * 
@@ -835,10 +923,10 @@ def graphe_evol(id_baladeur, prenom):
     df_evol_act = pd.DataFrame(evol_act, columns=colonnes_act)
     df_evol_act = df_evol_act[["activite", "jour", "mois", "annee", "moment", "nb_chiens", "tarif"]]
 
+    # On calcule le gain perçu pour chaque activité (tarif x nb_chiens)
     df_evol_act["gain_act"] = df_evol_act["tarif"]*df_evol_act["nb_chiens"]
-
-    df_evol_act["temps"] = df_evol_act['mois'].astype(str) + "_" + df_evol_act['annee'].astype(str)
     
+    # Liste les années disponibles parmi les activités déjà réalisées
     annees_dispo = sorted(df_evol_act["annee"].unique())
 
     print("\nQue voulez vous visualiser ?")
@@ -865,9 +953,10 @@ def graphe_evol(id_baladeur, prenom):
     if choix1 == "1":
         tab_temp = (
             df_evol_act.groupby("mois")
-            .size()
+            .size()# Compte le nombre de ligne et donc d'activité
             .reindex(range(1, 13), fill_value=0)
-            .reset_index(name="nb_activites")
+            .reset_index(name="nb_activites") # conserve le format pandas.Dataframe 
+            # avec une nouvelle colonne qui compte le nombre d'acitvité
         )
 
         plt.bar(tab_temp["mois"], tab_temp["nb_activites"])
@@ -880,6 +969,7 @@ def graphe_evol(id_baladeur, prenom):
         graphe_evol(id_baladeur, prenom)
         return
     elif choix1 == "2":
+        # Somme le nombre de chiens pris en compte en groupant selon les mois
         tab_temp = (
             df_evol_act.groupby("mois")["nb_chiens"]
             .sum()
@@ -897,6 +987,7 @@ def graphe_evol(id_baladeur, prenom):
         graphe_evol(id_baladeur, prenom)
         return
     elif choix1 == "3":
+        # Somme les gains reçus en groupant selon les mois
         tab_temp = (
             df_evol_act.groupby("mois")["gain_act"]
             .sum()
@@ -914,6 +1005,7 @@ def graphe_evol(id_baladeur, prenom):
         graphe_evol(id_baladeur, prenom)
         return
     elif choix1 == "4":
+        # On compte le nombre de ligne en regroupant selon les mois et le type d'activité
         tab_temp = (
             df_evol_act.groupby(["mois", "activite"])
             .size()
