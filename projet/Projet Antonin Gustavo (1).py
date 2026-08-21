@@ -12,11 +12,7 @@ import numpy as np
 import seaborn as sns
 
 
-db = pymysql.connect(host="146.59.198.88",
-                     port=3300,
-                     user="ferreira",
-                     password="Aferreira26",
-                     db="ferreira")
+db = pymysql.connect("YOUR CONNECTION INFORMATIONS TO MYSQL")
 
 cursor = db.cursor()
 
