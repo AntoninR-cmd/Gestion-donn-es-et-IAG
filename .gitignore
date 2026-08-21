@@ -1,0 +1,9 @@
+# Ignore everything at the root
+/*
+
+# Keep the .gitignore itself
+!/.gitignore
+
+# Keep the "projet" directory and everything inside it
+!/projet/
+!/projet/**
